@@ -1,6 +1,7 @@
 using Hackernews.Api.Clients;
 using Hackernews.Api.Models;
 using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
 
 namespace Hackernews.Api.Services;
 
@@ -34,10 +35,23 @@ public sealed class StoryRefreshService(
         var client = scope.ServiceProvider.GetRequiredService<IHackerNewsClient>();
 
         var ids = await client.GetBestStoryIdsAsync(ct);
-        var items = await Task.WhenAll(ids.Select(id => client.GetItemAsync(id, ct)));
+        var items = new ConcurrentBag<HackerNewsItem>();
+
+        var parallelOptions = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = options.Value.MaxConcurrentRequests,
+            CancellationToken = ct
+        };
+
+        await Parallel.ForEachAsync(ids, parallelOptions, async (id, token) =>
+        {
+            if (await client.GetItemAsync(id, token) is { } item)
+            {
+                items.Add(item);
+            }
+        });
 
         var stories = items
-            .OfType<HackerNewsItem>()
             .OrderByDescending(item => item.Score)
             .Select(Story.From)
             .ToArray();

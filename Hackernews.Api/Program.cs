@@ -5,12 +5,17 @@ using Microsoft.Extensions.Options;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.Configure<HackerNewsOptions>(builder.Configuration.GetSection(HackerNewsOptions.SectionName));
+builder.Services.AddOptions<HackerNewsOptions>()
+    .Bind(builder.Configuration.GetSection(HackerNewsOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
 builder.Services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client) =>
 {
     var options = sp.GetRequiredService<IOptions<HackerNewsOptions>>().Value;
     client.BaseAddress = new Uri(options.BaseUrl);
-});
+})
+.AddStandardResilienceHandler();
 
 builder.Services.AddSingleton<IStoryCache, StoryCache>();
 builder.Services.AddHostedService<StoryRefreshService>();
