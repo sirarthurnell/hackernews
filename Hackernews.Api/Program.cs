@@ -20,9 +20,13 @@ builder.Services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client)
 builder.Services.AddSingleton<IStoryCache, StoryCache>();
 builder.Services.AddHostedService<StoryRefreshService>();
 
+builder.Services.AddProblemDetails();
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
