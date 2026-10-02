@@ -6,10 +6,12 @@ namespace Hackernews.Api.Controllers;
 
 [ApiController]
 [Route("api/stories")]
-public sealed class StoriesController(IBestStoriesService stories) : ControllerBase
+public sealed class StoriesController(IStoryCache cache) : ControllerBase
 {
     [HttpGet("best")]
-    public async Task<ActionResult<IReadOnlyList<Story>>> GetBest(
-        [FromQuery] int n, CancellationToken ct)
-        => Ok(await stories.GetBestAsync(n, ct));
+    public ActionResult<IEnumerable<Story>> GetBest([FromQuery] int n)
+    {
+        IReadOnlyList<Story> stories = cache.Stories ?? [];
+        return Ok(stories.Take(n));
+    }
 }

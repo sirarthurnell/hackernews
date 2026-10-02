@@ -12,7 +12,8 @@ builder.Services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client)
     client.BaseAddress = new Uri(options.BaseUrl);
 });
 
-builder.Services.AddScoped<IBestStoriesService, BestStoriesService>();
+builder.Services.AddSingleton<IStoryCache, StoryCache>();
+builder.Services.AddHostedService<StoryRefreshService>();
 
 builder.Services.AddOpenApi();
 
