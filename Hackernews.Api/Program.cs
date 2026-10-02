@@ -1,14 +1,22 @@
+using Hackernews.Api.Clients;
+using Microsoft.Extensions.Options;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.Configure<HackerNewsOptions>(
+    builder.Configuration.GetSection(HackerNewsOptions.SectionName));
+
+builder.Services.AddHttpClient<IHackerNewsClient, HackerNewsClient>((sp, client) =>
+{
+    var options = sp.GetRequiredService<IOptions<HackerNewsOptions>>().Value;
+    client.BaseAddress = new Uri(options.BaseUrl);
+});
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
