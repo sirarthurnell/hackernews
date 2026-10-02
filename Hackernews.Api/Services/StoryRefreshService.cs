@@ -29,7 +29,7 @@ public sealed class StoryRefreshService(
         while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
-    private async Task RefreshAsync(CancellationToken ct)
+    public async Task RefreshAsync(CancellationToken ct)
     {
         using var scope = scopeFactory.CreateScope();
         var client = scope.ServiceProvider.GetRequiredService<IHackerNewsClient>();
